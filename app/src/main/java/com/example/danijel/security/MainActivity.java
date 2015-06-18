@@ -21,11 +21,11 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class MainActivity extends ActionBarActivity {
 
-    TextView input_xml = (TextView)findViewById(R.id.input_text);
+    TextView input = (TextView)findViewById(R.id.input_text);
     TextView encrypt_text = (TextView)findViewById(R.id.encrypt_text);
     TextView decrypt_text = (TextView)findViewById(R.id.decrypt_text);
 
-    byte[] input = input_xml.getText().toString().getBytes();
+    byte[] input = input.getText().toString().getBytes();
     private byte[] encryptedText;
 
     Cipher cipher;
@@ -36,11 +36,6 @@ public class MainActivity extends ActionBarActivity {
 
     public void encrypt() throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException
     {
-
-        cipher = Cipher.getInstance("AES");
-        key = "dAtAbAsE98765432"; // 128 bit key
-        aesKey = new SecretKeySpec(key.getBytes(), "AES");
-
         cipher.init(Cipher.ENCRYPT_MODE, aesKey);
         encrypted = cipher.doFinal(input);
         encrypt_text.setText("Encrypted: " + new String(Base64.getEncoder().encodeToString(encrypted)));
@@ -55,10 +50,28 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    private static SecretKey generateKey() throws NoSuchAlgorithmException
+    {
+        KeyGenerator keygen;
+
+        keygen = KeyGenerator.getInstance("AES");
+        keygen.init(128);
+        SecretKey aesKey = keygen.generateKey();
+        return aesKey;
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        cipher = Cipher.getInstance("AES");
+        SecretKey key = null;
+        key = generateKey();
+        SecretKeySpec aesKey = new SecretKeySpec(key.getEncoded(), "AES");
+
     }
 
     @Override
