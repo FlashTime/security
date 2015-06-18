@@ -13,23 +13,20 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 
 public class MainActivity extends ActionBarActivity {
 
-    TextView input = (TextView)findViewById(R.id.input_text);
-    TextView encrypt_text = (TextView)findViewById(R.id.encrypt_text);
-    TextView decrypt_text = (TextView)findViewById(R.id.decrypt_text);
+    TextView inputXml;
+    TextView encryptText;
+    TextView decryptText;
 
-    byte[] input = input.getText().toString().getBytes();
-    private byte[] encryptedText;
-
+    byte[] input;
     Cipher cipher;
-    String key;
     SecretKeySpec aesKey;
 
     byte[] encrypted;
@@ -38,7 +35,7 @@ public class MainActivity extends ActionBarActivity {
     {
         cipher.init(Cipher.ENCRYPT_MODE, aesKey);
         encrypted = cipher.doFinal(input);
-        encrypt_text.setText("Encrypted: " + new String(Base64.getEncoder().encodeToString(encrypted)));
+        encryptText.setText("Encrypted: " + new String(Base64.getEncoder().encodeToString(encrypted)));
     }
 
     public void decrypt() throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException
@@ -46,7 +43,7 @@ public class MainActivity extends ActionBarActivity {
 
         cipher.init(Cipher.DECRYPT_MODE, aesKey);
         String decrypted = new String(cipher.doFinal(encrypted));
-        decrypt_text.setText("Decrypted: " + decrypted);
+        decryptText.setText("Decrypted: " + decrypted);
 
     }
 
@@ -66,11 +63,28 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        inputXml = (TextView)findViewById(R.id.input_text);
+        encryptText = (TextView)findViewById(R.id.encrypt_text);
+        decryptText = (TextView)findViewById(R.id.decrypt_text);
 
-        cipher = Cipher.getInstance("AES");
+       input = inputXml.getText().toString().getBytes();
+
+        try {
+            cipher = Cipher.getInstance("AES");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        }
         SecretKey key = null;
-        key = generateKey();
+        try {
+            key = generateKey();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
         SecretKeySpec aesKey = new SecretKeySpec(key.getEncoded(), "AES");
+
+
 
     }
 
