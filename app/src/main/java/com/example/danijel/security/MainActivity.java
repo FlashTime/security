@@ -2,17 +2,14 @@ package com.example.danijel.security;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -29,35 +26,6 @@ public class MainActivity extends ActionBarActivity {
     Cipher cipher;
     SecretKeySpec aesKey;
 
-    byte[] encrypted;
-
-    public void encrypt() throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException
-    {
-        cipher.init(Cipher.ENCRYPT_MODE, aesKey);
-        encrypted = cipher.doFinal(input);
-        encryptText.setText("Encrypted: " + new String(Base64.getEncoder().encodeToString(encrypted)));
-    }
-
-    public void decrypt() throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException
-    {
-
-        cipher.init(Cipher.DECRYPT_MODE, aesKey);
-        String decrypted = new String(cipher.doFinal(encrypted));
-        decryptText.setText("Decrypted: " + decrypted);
-
-    }
-
-    private static SecretKey generateKey() throws NoSuchAlgorithmException
-    {
-        KeyGenerator keygen;
-
-        keygen = KeyGenerator.getInstance("AES");
-        keygen.init(128);
-        SecretKey aesKey = keygen.generateKey();
-        return aesKey;
-
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,8 +34,6 @@ public class MainActivity extends ActionBarActivity {
         inputXml = (TextView)findViewById(R.id.input_text);
         encryptText = (TextView)findViewById(R.id.encrypt_text);
         decryptText = (TextView)findViewById(R.id.decrypt_text);
-
-       input = inputXml.getText().toString().getBytes();
 
         try {
             cipher = Cipher.getInstance("AES");
@@ -82,11 +48,52 @@ public class MainActivity extends ActionBarActivity {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        SecretKeySpec aesKey = new SecretKeySpec(key.getEncoded(), "AES");
-
-
-
+        aesKey = new SecretKeySpec(key.getEncoded(), "AES");
     }
+
+    private static byte[] encrypt(SecretKeySpec raw, byte[] clear) throws Exception {
+        SecretKeySpec skeySpec = raw;//new SecretKeySpec(raw, "AES");
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
+        byte[] encrypted = cipher.doFinal(clear);
+        return encrypted;
+    }
+
+    private static byte[] decrypt(SecretKeySpec raw, byte[] encrypted) throws Exception {
+        SecretKeySpec skeySpec = raw;//new SecretKeySpec(raw, "AES");
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, skeySpec);
+        byte[] decrypted = cipher.doFinal(encrypted);
+        return decrypted;
+    }
+
+
+    public void encrypt(View view) throws Exception {
+
+        input = inputXml.getText().toString().getBytes();
+        byte[] encryptedData = encrypt(aesKey,input);
+        input = encryptedData;
+        String value = new String(encryptedData, "UTF-8");
+
+        encryptText.setText("Encrypted: " + value);
+    }
+
+    public void decrypt(View view) throws Exception {
+        byte[] decryptedData = decrypt(aesKey, input);
+        String value = new String(decryptedData, "UTF-8");
+        decryptText.setText("Decrypted: " + value);
+    }
+
+    private static SecretKey generateKey() throws NoSuchAlgorithmException {
+        KeyGenerator keygen;
+
+        keygen = KeyGenerator.getInstance("AES");
+        keygen.init(128);
+        SecretKey aesKey = keygen.generateKey();
+        return aesKey;
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
